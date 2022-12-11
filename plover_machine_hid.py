@@ -11,22 +11,10 @@ Most buttons have the same names as in GeminiPR, except for the extra buttons
 which are called X1-X26.
 '''
 from plover.machine.base import ThreadedStenotypeBase
-from plover import log
+from plover.log import error, debug, warning, info
 
 from bitstring import BitString
 import hid
-import platform
-
-# This is a hack to not open the hid device in exclusive mode on
-# darwin, if the version of hidapi installed is current enough
-if platform.system() == "Darwin":
-    import ctypes
-    try:
-        hid.hidapi.hid_darwin_set_open_exclusive.argtypes = (ctypes.c_int, )
-        hid.hidapi.hid_darwin_set_open_exclusive.restype = None
-        hid.hidapi.hid_darwin_set_open_exclusive(0)
-    except AttributeError as e:
-        log.error("hidapi < 0.12 in use, plover-hid will not work correctly")
 
 USAGE_PAGE: int = 0xFF50
 USAGE: int = 0x4C56
@@ -53,7 +41,6 @@ STENO_KEY_CHART = ("S-", "T-", "K-", "P-", "W-", "H-",
                    "X31", "X32", "X33", "X34", "X35", "X36",
                    "X37", "X38", "X39", "X40", "X41")
 
-print('steno key chart', len(STENO_KEY_CHART))
 class HidMachine(ThreadedStenotypeBase):
     KEYS_LAYOUT: str = '''
         #  #  #  #  #  #  #  #  #  #
@@ -87,7 +74,8 @@ class HidMachine(ThreadedStenotypeBase):
         while not self.finished.wait(0):
             try:
                 report = self._hid.read(65536, timeout=1000)
-            except hid.HIDException:
+            except hid.HIDException as e:
+                error('got HIDException: %s', e)
                 self._error()
                 return
             if not report:
@@ -116,15 +104,18 @@ class HidMachine(ThreadedStenotypeBase):
                 for device in hid.enumerate()
                 if device["usage_page"] == USAGE_PAGE and device["usage"] == USAGE
             ]
+            info('found hid devices: %s', (devices, ))
             if not devices:
                 self._error()
+                error('no plover hid devices found')
                 return
             # FIXME: if multiple compatible devices are found we should either
             # let the end user configure which one they want, or support reading
             # from all connected plover hid devices at the same time.
             self._hid = hid.Device(path=devices[0])
-        except hid.HIDException:
+        except hid.HIDException as e:
             self._error()
+            error('got HIDException: %s', e)
             return
         self.start()
 
