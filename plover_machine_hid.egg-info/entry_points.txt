@@ -1,0 +1,2 @@
+[plover.machine]
+Plover HID = plover_machine_hid:HidMachine

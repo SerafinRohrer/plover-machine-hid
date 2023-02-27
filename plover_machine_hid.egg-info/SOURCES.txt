@@ -1,0 +1,12 @@
+LICENSE
+README.md
+plover_machine_hid.py
+setup.cfg
+setup.py
+plover_machine_hid.egg-info/PKG-INFO
+plover_machine_hid.egg-info/SOURCES.txt
+plover_machine_hid.egg-info/dependency_links.txt
+plover_machine_hid.egg-info/entry_points.txt
+plover_machine_hid.egg-info/requires.txt
+plover_machine_hid.egg-info/top_level.txt
+plover_machine_hid.egg-info/zip-safe
